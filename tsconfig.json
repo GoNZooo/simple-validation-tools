@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "rootDir": "source",
+    "alwaysStrict": true,
+    "strict": true,
+    "module": "CommonJS",
+    "target": "es5",
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
