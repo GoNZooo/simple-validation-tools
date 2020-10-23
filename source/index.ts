@@ -73,7 +73,7 @@ export const isStringMapOf = <T>(
   value: unknown,
   predicate: TypePredicate<T>,
 ): value is StringMap<T> => {
-  if (typeof value === "object") {
+  if (isObject(value)) {
     const v = value as StringMap<unknown>;
 
     return Object.keys(v).every(predicate);
