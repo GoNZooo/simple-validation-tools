@@ -43,10 +43,6 @@ export const isNumber = (value: unknown): value is number => {
   return typeof value === "number";
 };
 
-export const isBigInteger = (value: unknown): value is bigint => {
-  return typeof value === "bigint";
-};
-
 export const isObject = (value: unknown): value is object => {
   return typeof value === "object";
 };
