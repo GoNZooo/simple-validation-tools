@@ -50,7 +50,8 @@ export const isObject = (value: unknown): value is object => {
 export interface Constructor<T> {
   prototype: T;
 
-  new (): T;
+  // tslint:disable-next-line:no-any
+  new (...args: any[]): T;
 }
 
 export const instanceOf = <T>(constructor: Constructor<T>): TypePredicate<T> => {
