@@ -1,6 +1,7 @@
 import {
   arrayOf,
   isBoolean,
+  isInstanceOf,
   isInterface,
   isNumber,
   isString,
@@ -8,6 +9,7 @@ import {
   runChecker,
   ValidationResult,
 } from "./index";
+import { Console } from "console";
 
 interface Person {
   type: "Person";
@@ -63,4 +65,15 @@ test("`isPerson` works", () => {
 
   expect(validatePerson(personObject).type).toEqual("Valid");
   expect(validatePerson(notPersonObject).type).toEqual("Invalid");
+});
+
+test("Basic `isInstanceOf` works", () => {
+  const console = new Console({ stdout: process.stdout });
+  const bufferSize = 32;
+  const buffer = Buffer.alloc(bufferSize);
+
+  expect(isInstanceOf(console, Console)).toBe(true);
+  expect(isInstanceOf(buffer, Buffer)).toBe(true);
+  expect(isInstanceOf(console, Buffer)).toBe(false);
+  expect(isInstanceOf(buffer, Console)).toBe(false);
 });
