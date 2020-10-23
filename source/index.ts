@@ -56,7 +56,7 @@ export interface Constructor<T> {
 
 export const instanceOf = <T>(constructor: Constructor<T>): TypePredicate<T> => {
   return (value: unknown): value is T => {
-    return value instanceof constructor;
+    return isInstanceOf(value, constructor);
   };
 };
 

@@ -2,7 +2,6 @@ import {
   arrayOf,
   instanceOf,
   isBoolean,
-  isInstanceOf,
   isInterface,
   isNumber,
   isString,
@@ -80,11 +79,6 @@ test("Basic `isInstanceOf` works", () => {
 
   const isBuffer = instanceOf(Buffer);
   const isConsole = instanceOf(Console);
-
-  expect(isInstanceOf(console, Console)).toBe(true);
-  expect(isInstanceOf(buffer, Buffer)).toBe(true);
-  expect(isInstanceOf(console, Buffer)).toBe(false);
-  expect(isInstanceOf(buffer, Console)).toBe(false);
 
   expect(isConsole(console)).toBe(true);
   expect(isBuffer(buffer)).toBe(true);
