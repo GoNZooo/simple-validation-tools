@@ -8,6 +8,7 @@ import {
   optional,
   runChecker,
   ValidationResult,
+  Validator,
 } from "./index";
 import { Console } from "console";
 
@@ -33,7 +34,7 @@ export const isPerson = (value: unknown): value is Person => {
   });
 };
 
-export const validatePerson = (value: unknown): ValidationResult<Person> => {
+export const validatePerson: Validator<Person> = (value: unknown): ValidationResult<Person> => {
   return runChecker(value, isPerson);
 };
 
