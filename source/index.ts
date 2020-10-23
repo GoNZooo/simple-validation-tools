@@ -49,6 +49,7 @@ export const isObject = (value: unknown): value is object => {
 
 export interface Constructor<T> {
   prototype: T;
+
   new (): T;
 }
 
@@ -92,11 +93,7 @@ const isLiteral = (value: unknown): value is Literal => {
       return true;
 
     default:
-      if (value === null || value === undefined) {
-        return true;
-      } else {
-        return false;
-      }
+      return value === null || value === undefined;
   }
 };
 
