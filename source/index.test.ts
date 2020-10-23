@@ -22,7 +22,7 @@ interface Person {
   booleanField: boolean;
 }
 
-export const isPerson = (value: unknown): value is Person => {
+const isPerson = (value: unknown): value is Person => {
   return isInterface(value, {
     type: "Person",
     name: isString,
@@ -34,7 +34,7 @@ export const isPerson = (value: unknown): value is Person => {
   });
 };
 
-export const validatePerson: Validator<Person> = (value: unknown): ValidationResult<Person> => {
+const validatePerson: Validator<Person> = (value: unknown): ValidationResult<Person> => {
   return runChecker(value, isPerson);
 };
 
