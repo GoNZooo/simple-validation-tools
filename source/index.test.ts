@@ -1,5 +1,6 @@
 import {
   arrayOf,
+  instanceOf,
   isBoolean,
   isInstanceOf,
   isInterface,
@@ -56,6 +57,8 @@ const notPersonData = JSON.stringify({
   booleanField: false,
 });
 
+const notEvenAStringMap = 1 as unknown;
+
 test("`isPerson` works", () => {
   const personObject = JSON.parse(personData);
   const notPersonObject = JSON.parse(notPersonData);
@@ -65,6 +68,9 @@ test("`isPerson` works", () => {
 
   expect(validatePerson(personObject).type).toEqual("Valid");
   expect(validatePerson(notPersonObject).type).toEqual("Invalid");
+
+  expect(isPerson(notEvenAStringMap)).toBe(false);
+  expect(validatePerson(notEvenAStringMap).type).toBe("Invalid");
 });
 
 test("Basic `isInstanceOf` works", () => {
@@ -72,8 +78,16 @@ test("Basic `isInstanceOf` works", () => {
   const bufferSize = 32;
   const buffer = Buffer.alloc(bufferSize);
 
+  const isBuffer = instanceOf(Buffer);
+  const isConsole = instanceOf(Console);
+
   expect(isInstanceOf(console, Console)).toBe(true);
   expect(isInstanceOf(buffer, Buffer)).toBe(true);
   expect(isInstanceOf(console, Buffer)).toBe(false);
   expect(isInstanceOf(buffer, Console)).toBe(false);
+
+  expect(isConsole(console)).toBe(true);
+  expect(isBuffer(buffer)).toBe(true);
+  expect(isConsole(buffer)).toBe(false);
+  expect(isBuffer(console)).toBe(false);
 });
