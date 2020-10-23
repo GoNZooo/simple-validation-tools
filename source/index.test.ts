@@ -1,11 +1,12 @@
 import {
+  arrayOf,
+  isBoolean,
+  isInterface,
+  isNumber,
+  isString,
+  optional,
   runChecker,
   ValidationResult,
-  isInterface,
-  isString,
-  isNumber,
-  optional,
-  arrayOf,
 } from "./index";
 
 interface Person {
@@ -15,6 +16,7 @@ interface Person {
   field: null;
   optionalField: string | null;
   arrayField: number[];
+  booleanField: boolean;
 }
 
 export const isPerson = (value: unknown): value is Person => {
@@ -25,6 +27,7 @@ export const isPerson = (value: unknown): value is Person => {
     field: null,
     optionalField: optional(isString),
     arrayField: arrayOf(isNumber),
+    booleanField: isBoolean,
   });
 };
 
@@ -39,13 +42,16 @@ const personData = JSON.stringify({
   field: null,
   arrayField: [1, 2, 3],
   optionalField: "hello",
+  booleanField: true,
 });
+
 const notPersonData = JSON.stringify({
   type: "Person",
   name: "Rickard",
   age: "33",
   arrayField: [1, 2, 3],
   optionalField: 42,
+  booleanField: false,
 });
 
 test("`isPerson` works", () => {
