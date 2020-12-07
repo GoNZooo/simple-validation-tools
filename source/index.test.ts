@@ -1,12 +1,13 @@
 import {
   arrayOf,
   instanceOf,
+  InterfaceSpecification,
   isBoolean,
   isInterface,
   isNumber,
   isString,
   optional,
-  runChecker,
+  validate,
   ValidationResult,
   Validator,
 } from "./index";
@@ -22,20 +23,22 @@ interface Person {
   booleanField: boolean;
 }
 
+const personInterfaceSpecification: InterfaceSpecification = {
+  type: "Person",
+  name: isString,
+  age: isNumber,
+  field: null,
+  optionalField: optional(isString),
+  arrayField: arrayOf(isNumber),
+  booleanField: isBoolean,
+};
+
 const isPerson = (value: unknown): value is Person => {
-  return isInterface(value, {
-    type: "Person",
-    name: isString,
-    age: isNumber,
-    field: null,
-    optionalField: optional(isString),
-    arrayField: arrayOf(isNumber),
-    booleanField: isBoolean,
-  });
+  return isInterface(value, personInterfaceSpecification);
 };
 
 const validatePerson: Validator<Person> = (value: unknown): ValidationResult<Person> => {
-  return runChecker(value, isPerson);
+  return validate(value, personInterfaceSpecification);
 };
 
 const personData = JSON.stringify({
@@ -67,10 +70,28 @@ test("`isPerson` works", () => {
   expect(isPerson(notPersonObject)).toBe(false);
 
   expect(validatePerson(personObject).type).toEqual("Valid");
-  expect(validatePerson(notPersonObject).type).toEqual("Invalid");
+
+  const invalidPersonValidateResult = validatePerson(notPersonObject);
+  expect(invalidPersonValidateResult.type).toEqual("Invalid");
+  if (invalidPersonValidateResult.type === "Invalid") {
+    expect(invalidPersonValidateResult.errors.age).toEqual(
+      "Expected value to match type predicate `isNumber`, got: 33 (string)",
+    );
+    expect(invalidPersonValidateResult.errors.field).toEqual(
+      "Expected value to be null, got: undefined",
+    );
+    expect(invalidPersonValidateResult.errors.optionalField).toEqual(
+      "Expected value to match type predicate `isOptionalOrT`, got: 42 (number)",
+    );
+  }
 
   expect(isPerson(notEvenAStringMap)).toBe(false);
-  expect(validatePerson(notEvenAStringMap).type).toBe("Invalid");
+
+  const notAStringMapValidationResult = validatePerson(notEvenAStringMap);
+  expect(notAStringMapValidationResult.type).toBe("Invalid");
+  if (notAStringMapValidationResult.type === "Invalid") {
+    expect(notAStringMapValidationResult.errors._value).toBe("is not a StringMap/object");
+  }
 });
 
 test("Basic `isInstanceOf` works", () => {
