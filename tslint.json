@@ -36,7 +36,7 @@
     ],
     "forin": true,
     "import-spacing": true,
-    "interface-over-type-literal": true,
+    "interface-over-type-literal": false,
     "newline-before-return": true,
     "no-any": true,
     "no-angle-bracket-type-assertion": true,
