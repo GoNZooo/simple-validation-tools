@@ -1,5 +1,7 @@
 export type ValidationResult<T> = Valid<T> | Invalid<T>;
 
+export type ValidationSpecification = StringMap<Validator<unknown> | Literal>;
+
 export type Validator<T> = (value: unknown) => ValidationResult<T>;
 
 export type TypePredicate<T> = (value: unknown) => value is T;
@@ -15,20 +17,39 @@ export const Valid = <T>(value: T): Valid<T> => {
 
 export interface Invalid<T> {
   type: "Invalid";
-  errors: ErrorMap;
+  errors: ErrorMap | string;
 }
 
-export const Invalid = <T>(errors: ErrorMap): Invalid<T> => {
+export const Invalid = <T>(errors: ErrorMap | string): Invalid<T> => {
   return { type: "Invalid", errors };
 };
 
 export type ErrorMap = {
-  [key: string]: string;
+  [key: string]: string | ErrorMap;
 };
+
+export function runValidator<T>(
+  value: unknown,
+  validator: Validator<T> | Literal,
+): ValidationResult<T> {
+  if (isLiteral(validator)) {
+    return value === validator
+      ? Valid(value as T)
+      : Invalid(`Does not match literal '${validator}' (${typeof validator})`);
+  } else if (isValidator(validator)) {
+    return validator(value);
+  } else {
+    return assertUnreachable(validator);
+  }
+}
+
+export function isValidator(value: unknown): value is Validator<unknown> {
+  return typeof value === "function";
+}
 
 export const validate = <T>(
   value: unknown,
-  specification: InterfaceSpecification,
+  specification: ValidationSpecification,
 ): ValidationResult<T> => {
   const errors: ErrorMap = {};
   let hasErrors = false;
@@ -36,40 +57,24 @@ export const validate = <T>(
   if (isStringMapOf(value, isUnknown)) {
     for (const key in specification) {
       if (Object.prototype.hasOwnProperty.call(specification, key)) {
-        const checker = specification[key];
+        const validator = specification[key];
         const valueToCheck = value[key];
+        const validateResult = runValidator(valueToCheck, validator);
 
-        if (!check(valueToCheck, checker)) {
-          hasErrors = true;
-          switch (typeof checker) {
-            case "bigint":
-            case "string":
-            case "number":
-            case "boolean": {
-              errors[
-                key
-              ] = `Expected value to match literal checker ${checker}, got: ${valueToCheck} (${typeof valueToCheck})`;
-              break;
-            }
-            case "function": {
-              errors[key] = `Expected value to match type predicate \`${
-                checker.name
-              }\`, got: ${valueToCheck} (${typeof valueToCheck})`;
-              break;
-            }
-            case "undefined": {
-              break;
-            }
-
-            default: {
-              if (checker === null) {
-                errors[key] = `Expected value to be null, got: ${valueToCheck}`;
-                break;
-              }
-
-              assertUnreachable(checker);
-            }
+        switch (validateResult.type) {
+          case "Valid": {
+            break;
           }
+
+          case "Invalid": {
+            hasErrors = true;
+            errors[key] = validateResult.errors;
+
+            break;
+          }
+
+          default:
+            assertUnreachable(validateResult);
         }
       }
     }
@@ -79,7 +84,7 @@ export const validate = <T>(
       : // We know here that we should have a valid `T` as it has passed all checkers
         { type: "Valid", value: (value as unknown) as T };
   } else {
-    return { type: "Invalid", errors: { _value: "is not a StringMap/object" } };
+    return { type: "Invalid", errors: "is not a StringMap/object" };
   }
 };
 
@@ -97,6 +102,20 @@ export function isNumber(value: unknown): value is number {
 
 export function isObject(value: unknown): value is object {
   return typeof value === "object";
+}
+
+export function validateBoolean(value: unknown): ValidationResult<boolean> {
+  return typeof value === "boolean" ? Valid(value) : Invalid("is not boolean");
+}
+
+export function validateString(value: unknown): ValidationResult<string> {
+  return typeof value === "string" ? Valid(value) : Invalid("is not string");
+}
+
+export function validateNumber(value: unknown): ValidationResult<number> {
+  return typeof value === "number"
+    ? Valid(value)
+    : Invalid(`Expected number, got: ${value} (${typeof value})`);
 }
 
 export interface Constructor<T> {
@@ -194,9 +213,49 @@ export function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null
   };
 }
 
+export function validateOptional<T>(validator: Validator<T>): Validator<T | null | undefined> {
+  return function validateOptionalOrT(value: unknown): ValidationResult<T | null | undefined> {
+    const validationResult = validator(value);
+
+    if (validationResult.type === "Valid") {
+      return Valid(value as T);
+    } else if (value === null || value === undefined) {
+      return Valid(value);
+    } else {
+      return Invalid(validationResult.errors + " or null/undefined");
+    }
+  };
+}
+
 export function arrayOf<T>(predicate: TypePredicate<T>): TypePredicate<T[]> {
   return function isArrayOfT(value: unknown): value is T[] {
     return Array.isArray(value) && value.every(predicate);
+  };
+}
+
+export function validateArray<T>(validator: Validator<T>): Validator<T[]> {
+  return function validateArrayOfT(value: unknown): ValidationResult<T[]> {
+    if (Array.isArray(value)) {
+      let hasErrors = false;
+      const errorMap = value.reduce<ErrorMap>((errors, v, index) => {
+        const valueValidatorResult = validator(v);
+        if (valueValidatorResult.type === "Valid") {
+          return errors;
+        } else {
+          hasErrors = true;
+
+          return { ...errors, [index]: valueValidatorResult.errors };
+        }
+      }, {});
+
+      if (hasErrors) {
+        return Invalid(errorMap);
+      } else {
+        return Valid(value);
+      }
+    } else {
+      return Invalid("is not an array");
+    }
   };
 }
 
