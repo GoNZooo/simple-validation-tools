@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "dependencies": {},
   "license": "MIT",
+  "main": "source/index.js",
+  "scripts": {
+    "build": "tsc -p ."
+  },
   "devDependencies": {
     "@types/jest": "^26.0.14",
     "jest": "^26.5.2",

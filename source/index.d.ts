@@ -1,0 +1,47 @@
+export declare type ValidationResult<T> = Valid<T> | Invalid<T>;
+export declare type ValidationSpecification = StringMap<Validator<unknown> | Literal>;
+export declare type Validator<T> = (value: unknown) => ValidationResult<T>;
+export declare type TypePredicate<T> = (value: unknown) => value is T;
+export interface Valid<T> {
+    type: "Valid";
+    value: T;
+}
+export declare const Valid: <T>(value: T) => Valid<T>;
+export interface Invalid<T> {
+    type: "Invalid";
+    errors: ErrorMap | string;
+}
+export declare const Invalid: <T>(errors: ErrorMap | string) => Invalid<T>;
+export declare type ErrorMap = {
+    [key: string]: string | ErrorMap;
+};
+export declare function runValidator<T>(value: unknown, validator: Validator<T> | Literal): ValidationResult<T>;
+export declare function isValidator(value: unknown): value is Validator<unknown>;
+export declare const validate: <T>(value: unknown, specification: ValidationSpecification) => ValidationResult<T>;
+export declare function isBoolean(value: unknown): value is boolean;
+export declare function isString(value: unknown): value is string;
+export declare function isNumber(value: unknown): value is number;
+export declare function isObject(value: unknown): value is object;
+export declare function validateBoolean(value: unknown): ValidationResult<boolean>;
+export declare function validateString(value: unknown): ValidationResult<string>;
+export declare function validateNumber(value: unknown): ValidationResult<number>;
+export interface Constructor<T> {
+    prototype: T;
+    new (...args: any[]): T;
+}
+export declare function instanceOf<T>(constructor: Constructor<T>): TypePredicate<T>;
+export declare function isInstanceOf<T>(value: unknown, constructor: Constructor<T>): value is T;
+interface StringMap<T> {
+    [key: string]: T;
+}
+export declare function isUnknown(value: unknown): value is unknown;
+export declare function isStringMapOf<T>(value: unknown, predicate: TypePredicate<T>): value is StringMap<T>;
+export declare type TypeChecker<T> = Literal | TypePredicate<Literal | T>;
+export declare type Literal = number | string | boolean | bigint | undefined | null;
+export declare type InterfaceSpecification = StringMap<TypeChecker<unknown>>;
+export declare const isInterface: <T>(value: unknown, specification: InterfaceSpecification) => value is T;
+export declare function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null | undefined>;
+export declare function validateOptional<T>(validator: Validator<T>): Validator<T | null | undefined>;
+export declare function arrayOf<T>(predicate: TypePredicate<T>): TypePredicate<T[]>;
+export declare function validateArray<T>(validator: Validator<T>): Validator<T[]>;
+export {};
