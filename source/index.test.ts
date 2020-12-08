@@ -8,10 +8,22 @@ import {
   isString,
   optional,
   validate,
+  validateArray,
+  validateBoolean,
+  validateNumber,
+  validateOptional,
+  validateString,
   ValidationResult,
+  ValidationSpecification,
   Validator,
 } from "./index";
 import { Console } from "console";
+
+interface Company {
+  name: string;
+  ceo: Person;
+  employees: Person[];
+}
 
 interface Person {
   type: "Person";
@@ -33,12 +45,32 @@ const personInterfaceSpecification: InterfaceSpecification = {
   booleanField: isBoolean,
 };
 
+const personValidationSpecification: ValidationSpecification = {
+  type: "Person",
+  name: validateString,
+  age: validateNumber,
+  field: null,
+  optionalField: validateOptional(validateString),
+  arrayField: validateArray(validateNumber),
+  booleanField: validateBoolean,
+};
+
 const isPerson = (value: unknown): value is Person => {
   return isInterface(value, personInterfaceSpecification);
 };
 
 const validatePerson: Validator<Person> = (value: unknown): ValidationResult<Person> => {
-  return validate(value, personInterfaceSpecification);
+  return validate(value, personValidationSpecification);
+};
+
+const companyValidationSpecification: ValidationSpecification = {
+  name: validateString,
+  ceo: validatePerson,
+  employees: validateArray(validatePerson),
+};
+
+const validateCompany: Validator<Company> = (value: unknown): ValidationResult<Company> => {
+  return validate(value, companyValidationSpecification);
 };
 
 const personData = JSON.stringify({
@@ -73,15 +105,16 @@ test("`isPerson` works", () => {
 
   const invalidPersonValidateResult = validatePerson(notPersonObject);
   expect(invalidPersonValidateResult.type).toEqual("Invalid");
-  if (invalidPersonValidateResult.type === "Invalid") {
-    expect(invalidPersonValidateResult.errors.age).toEqual(
-      "Expected value to match type predicate `isNumber`, got: 33 (string)",
-    );
+  if (
+    invalidPersonValidateResult.type === "Invalid" &&
+    typeof invalidPersonValidateResult.errors === "object"
+  ) {
+    expect(invalidPersonValidateResult.errors.age).toEqual("Expected number, got: 33 (string)");
     expect(invalidPersonValidateResult.errors.field).toEqual(
-      "Expected value to be null, got: undefined",
+      "Does not match literal 'null' (object)",
     );
     expect(invalidPersonValidateResult.errors.optionalField).toEqual(
-      "Expected value to match type predicate `isOptionalOrT`, got: 42 (number)",
+      "is not string or null/undefined",
     );
   }
 
@@ -90,7 +123,7 @@ test("`isPerson` works", () => {
   const notAStringMapValidationResult = validatePerson(notEvenAStringMap);
   expect(notAStringMapValidationResult.type).toBe("Invalid");
   if (notAStringMapValidationResult.type === "Invalid") {
-    expect(notAStringMapValidationResult.errors._value).toBe("is not a StringMap/object");
+    expect(notAStringMapValidationResult.errors).toBe("is not a StringMap/object");
   }
 });
 
@@ -106,4 +139,45 @@ test("Basic `isInstanceOf` works", () => {
   expect(isBuffer(buffer)).toBe(true);
   expect(isConsole(buffer)).toBe(false);
   expect(isBuffer(console)).toBe(false);
+});
+
+test("Nested validators work as expected", () => {
+  const validPerson = JSON.parse(personData);
+  const invalidPerson = JSON.parse(notPersonData);
+  const validCompany = JSON.parse(
+    JSON.stringify({
+      name: "Testing EOOD",
+      ceo: validPerson,
+      employees: [validPerson, validPerson],
+    }),
+  );
+  const invalidCompany = JSON.parse(
+    JSON.stringify({
+      name: "Testing EOOD",
+      ceo: invalidPerson,
+      employees: [validPerson, invalidPerson],
+    }),
+  );
+
+  expect(validateCompany(validCompany).type).toEqual("Valid");
+
+  const invalidResult = validateCompany(invalidCompany);
+  expect(invalidResult.type).toEqual("Invalid");
+  if (invalidResult.type === "Invalid") {
+    expect(typeof invalidResult.errors).toEqual("object");
+    if (typeof invalidResult.errors === "object") {
+      expect(invalidResult.errors.ceo).toEqual({
+        age: "Expected number, got: 33 (string)",
+        field: "Does not match literal 'null' (object)",
+        optionalField: "is not string or null/undefined",
+      });
+      expect(invalidResult.errors.employees).toEqual({
+        1: {
+          age: "Expected number, got: 33 (string)",
+          field: "Does not match literal 'null' (object)",
+          optionalField: "is not string or null/undefined",
+        },
+      });
+    }
+  }
 });
