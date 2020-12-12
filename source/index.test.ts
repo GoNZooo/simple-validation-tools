@@ -11,6 +11,7 @@ import {
   validateArray,
   validateBoolean,
   validateNumber,
+  validateOneOf,
   validateOptional,
   validateString,
   ValidationResult,
@@ -179,5 +180,22 @@ test("Nested validators work as expected", () => {
         },
       });
     }
+  }
+});
+
+test("`validateOneOf` works with basic types", () => {
+  const success = 1 as unknown;
+  const failure = false as unknown;
+  const validators = [validateString, validateNumber] as Validator<string | number>[];
+
+  const successResult = validateOneOf(success, validators);
+  expect(successResult.type).toEqual("Valid");
+
+  const failureResult = validateOneOf(failure, validators);
+  expect(failureResult.type).toEqual("Invalid");
+  if (failureResult.type === "Invalid") {
+    expect(failureResult.errors).toEqual(
+      "Expected to match one of `validateString`, `validateNumber`",
+    );
   }
 });
