@@ -88,6 +88,21 @@ export const validate = <T>(
   }
 };
 
+export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T> {
+  for (const validator of validators) {
+    const result = validator(value);
+    if (result.type === "Valid") {
+      return result;
+    }
+  }
+
+  return { type: "Invalid", errors: `Expected to match one of ${printValidators(validators)}` };
+}
+
+function printValidators<T>(validators: Validator<T>[]): string {
+  return validators.map((v) => "`" + v.name + "`").join(", ");
+}
+
 export function isBoolean(value: unknown): value is boolean {
   return typeof value === "boolean";
 }
