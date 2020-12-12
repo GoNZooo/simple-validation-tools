@@ -18,6 +18,7 @@ export declare type ErrorMap = {
 export declare function runValidator<T>(value: unknown, validator: Validator<T> | Literal): ValidationResult<T>;
 export declare function isValidator(value: unknown): value is Validator<unknown>;
 export declare const validate: <T>(value: unknown, specification: ValidationSpecification) => ValidationResult<T>;
+export declare function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T>;
 export declare function isBoolean(value: unknown): value is boolean;
 export declare function isString(value: unknown): value is string;
 export declare function isNumber(value: unknown): value is number;

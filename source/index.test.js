@@ -118,4 +118,16 @@ test("Nested validators work as expected", function () {
         }
     }
 });
+test("`validateOneOf` works with basic types", function () {
+    var success = 1;
+    var failure = false;
+    var validators = [index_1.validateString, index_1.validateNumber];
+    var successResult = index_1.validateOneOf(success, validators);
+    expect(successResult.type).toEqual("Valid");
+    var failureResult = index_1.validateOneOf(failure, validators);
+    expect(failureResult.type).toEqual("Invalid");
+    if (failureResult.type === "Invalid") {
+        expect(failureResult.errors).toEqual("Expected to match one of `validateString`, `validateNumber`");
+    }
+});
 //# sourceMappingURL=index.test.js.map

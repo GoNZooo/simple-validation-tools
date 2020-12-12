@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 exports.Valid = function (value) {
     return { type: "Valid", value: value };
 };
@@ -68,6 +68,20 @@ exports.validate = function (value, specification) {
         return { type: "Invalid", errors: "is not a StringMap/object" };
     }
 };
+function validateOneOf(value, validators) {
+    for (var _i = 0, validators_1 = validators; _i < validators_1.length; _i++) {
+        var validator = validators_1[_i];
+        var result = validator(value);
+        if (result.type === "Valid") {
+            return result;
+        }
+    }
+    return { type: "Invalid", errors: "Expected to match one of " + printValidators(validators) };
+}
+exports.validateOneOf = validateOneOf;
+function printValidators(validators) {
+    return validators.map(function (v) { return "`" + v.name + "`"; }).join(", ");
+}
 function isBoolean(value) {
     return typeof value === "boolean";
 }
