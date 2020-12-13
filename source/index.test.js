@@ -130,4 +130,16 @@ test("`validateOneOf` works with basic types", function () {
         expect(failureResult.errors).toEqual("Expected to match one of `validateString`, `validateNumber`");
     }
 });
+test("`validateConstant` works", function () {
+    var success = 1;
+    var failure = false;
+    var validator = index_1.validateConstant(1);
+    var successResult = validator(success);
+    expect(successResult.type).toEqual("Valid");
+    var failureResult = validator(failure);
+    expect(failureResult.type).toEqual("Invalid");
+    if (failureResult.type === "Invalid") {
+        expect(failureResult.errors).toEqual("Expected 1 (number), got: false (boolean)");
+    }
+});
 //# sourceMappingURL=index.test.js.map

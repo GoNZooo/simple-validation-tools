@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 exports.Valid = function (value) {
     return { type: "Valid", value: value };
 };
@@ -79,6 +79,17 @@ function validateOneOf(value, validators) {
     return { type: "Invalid", errors: "Expected to match one of " + printValidators(validators) };
 }
 exports.validateOneOf = validateOneOf;
+function validateConstant(constant) {
+    return function validateConstantValue(value) {
+        return value === constant
+            ? { type: "Valid", value: value }
+            : {
+                type: "Invalid",
+                errors: "Expected " + constant + " (" + typeof constant + "), got: " + value + " (" + typeof value + ")",
+            };
+    };
+}
+exports.validateConstant = validateConstant;
 function printValidators(validators) {
     return validators.map(function (v) { return "`" + v.name + "`"; }).join(", ");
 }
