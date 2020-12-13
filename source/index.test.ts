@@ -10,6 +10,7 @@ import {
   validate,
   validateArray,
   validateBoolean,
+  validateConstant,
   validateNumber,
   validateOneOf,
   validateOptional,
@@ -197,5 +198,20 @@ test("`validateOneOf` works with basic types", () => {
     expect(failureResult.errors).toEqual(
       "Expected to match one of `validateString`, `validateNumber`",
     );
+  }
+});
+
+test("`validateConstant` works", () => {
+  const success = 1 as unknown;
+  const failure = false as unknown;
+  const validator = validateConstant<1>(1);
+
+  const successResult = validator(success);
+  expect(successResult.type).toEqual("Valid");
+
+  const failureResult = validator(failure);
+  expect(failureResult.type).toEqual("Invalid");
+  if (failureResult.type === "Invalid") {
+    expect(failureResult.errors).toEqual("Expected 1 (number), got: false (boolean)");
   }
 });
