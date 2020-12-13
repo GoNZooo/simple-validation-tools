@@ -99,6 +99,17 @@ export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): Va
   return { type: "Invalid", errors: `Expected to match one of ${printValidators(validators)}` };
 }
 
+export function validateConstant<T>(constant: T): Validator<T> {
+  return function validateConstantValue(value: unknown): ValidationResult<T> {
+    return value === constant
+      ? { type: "Valid", value: value as T }
+      : {
+          type: "Invalid",
+          errors: `Expected ${constant} (${typeof constant}), got: ${value} (${typeof value})`,
+        };
+  };
+}
+
 function printValidators<T>(validators: Validator<T>[]): string {
   return validators.map((v) => "`" + v.name + "`").join(", ");
 }
