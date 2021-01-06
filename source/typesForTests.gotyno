@@ -1,0 +1,27 @@
+struct PayloadForOne {
+    field: U32
+}
+
+struct PayloadForTwo {
+    value: "StringConstant"
+}
+
+union TaggedUnion {
+    One: PayloadForOne
+    Two: PayloadForTwo
+}
+
+enum BasicEnumeration {
+    size1 = "SizeOne"
+    size2 = "SizeTwo"
+    other = "OtherSize"
+}
+
+struct UntaggedOnePayload {
+    value: "Hello"
+}
+
+untagged union UntaggedUnion {
+    UntaggedOnePayload
+    String
+}

@@ -11,13 +11,15 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
-exports.Valid = function (value) {
+exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.validateOneOfLiterals = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+var Valid = function (value) {
     return { type: "Valid", value: value };
 };
-exports.Invalid = function (errors) {
+exports.Valid = Valid;
+var Invalid = function (errors) {
     return { type: "Invalid", errors: errors };
 };
+exports.Invalid = Invalid;
 function runValidator(value, validator) {
     if (isLiteral(validator)) {
         return value === validator
@@ -36,7 +38,7 @@ function isValidator(value) {
     return typeof value === "function";
 }
 exports.isValidator = isValidator;
-exports.validate = function (value, specification) {
+var validate = function (value, specification) {
     var errors = {};
     var hasErrors = false;
     if (isStringMapOf(value, isUnknown)) {
@@ -68,17 +70,59 @@ exports.validate = function (value, specification) {
         return { type: "Invalid", errors: "is not a StringMap/object" };
     }
 };
+exports.validate = validate;
 function validateOneOf(value, validators) {
     for (var _i = 0, validators_1 = validators; _i < validators_1.length; _i++) {
         var validator = validators_1[_i];
         var result = validator(value);
         if (result.type === "Valid") {
-            return result;
+            return { type: "Valid", value: value };
         }
     }
-    return { type: "Invalid", errors: "Expected to match one of " + printValidators(validators) };
+    return {
+        type: "Invalid",
+        errors: "Expected to match one of " + printValidators(validators) + ", found: " + value + " (" + typeof value + ")",
+    };
 }
 exports.validateOneOf = validateOneOf;
+function validateOneOfLiterals(value, values) {
+    for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+        var v = values_1[_i];
+        if (v === value) {
+            return { type: "Valid", value: value };
+        }
+    }
+    var joinedValues = values.map(function (v) { return JSON.stringify(v, null, JSON_SPACING); }).join(", ");
+    return { type: "Invalid", errors: "Expected to match one of " + joinedValues + " but found " + value };
+}
+exports.validateOneOfLiterals = validateOneOfLiterals;
+function hasTypeTag(value, tagField) {
+    var _a;
+    return exports.isInterface(value, (_a = {}, _a[tagField] = isString, _a));
+}
+exports.hasTypeTag = hasTypeTag;
+function validateWithTypeTag(value, spec, tagField) {
+    var _a;
+    if (hasTypeTag(value, tagField)) {
+        var tagValue = value[tagField];
+        var validator = (_a = spec[tagValue]) !== null && _a !== void 0 ? _a : "NotFound";
+        if (validator === "NotFound") {
+            var validTypeTags = Object.keys(spec);
+            return {
+                type: "Invalid",
+                errors: "Unknown type tag. Expected one of: " + validTypeTags.join(", ") + " but found '" + tagValue + "'",
+            };
+        }
+        return validator(value);
+    }
+    else {
+        return {
+            type: "Invalid",
+            errors: "Expecting type tag but found none in: " + JSON.stringify(value, null, JSON_SPACING),
+        };
+    }
+}
+exports.validateWithTypeTag = validateWithTypeTag;
 function validateConstant(constant) {
     return function validateConstantValue(value) {
         return value === constant
@@ -169,7 +213,7 @@ function check(value, checker) {
         throw Error("Invalid type for checker: " + typeof checker);
     }
 }
-exports.isInterface = function (value, specification) {
+var isInterface = function (value, specification) {
     if (isStringMapOf(value, isUnknown)) {
         for (var key in specification) {
             if (Object.prototype.hasOwnProperty.call(specification, key)) {
@@ -186,6 +230,7 @@ exports.isInterface = function (value, specification) {
         return false;
     }
 };
+exports.isInterface = isInterface;
 function optional(predicate) {
     return function isOptionalOrT(value) {
         return value === null || value === undefined || predicate(value);
@@ -244,4 +289,5 @@ exports.validateArray = validateArray;
 var assertUnreachable = function (x) {
     throw new Error("Reached unreachable case with value: " + x);
 };
+var JSON_SPACING = 4;
 //# sourceMappingURL=index.js.map

@@ -19,6 +19,15 @@ export declare function runValidator<T>(value: unknown, validator: Validator<T> 
 export declare function isValidator(value: unknown): value is Validator<unknown>;
 export declare const validate: <T>(value: unknown, specification: ValidationSpecification) => ValidationResult<T>;
 export declare function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T>;
+export declare function validateOneOfLiterals<T extends Literal>(value: unknown, values: readonly T[]): ValidationResult<T>;
+export declare type ValidatorSpec<T> = {
+    [key: string]: Validator<T> | undefined;
+};
+export declare type HasTypeTag<T extends string> = {
+    [P in T]: string;
+};
+export declare function hasTypeTag<T extends string>(value: unknown, tagField: T): value is HasTypeTag<T>;
+export declare function validateWithTypeTag<T>(value: unknown, spec: ValidatorSpec<T>, tagField: string): ValidationResult<T>;
 export declare function validateConstant<T>(constant: T): Validator<T>;
 export declare function isBoolean(value: unknown): value is boolean;
 export declare function isString(value: unknown): value is string;

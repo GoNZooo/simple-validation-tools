@@ -92,11 +92,70 @@ export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): Va
   for (const validator of validators) {
     const result = validator(value);
     if (result.type === "Valid") {
-      return result;
+      return { type: "Valid", value: value as T };
     }
   }
 
-  return { type: "Invalid", errors: `Expected to match one of ${printValidators(validators)}` };
+  return {
+    type: "Invalid",
+    errors: `Expected to match one of ${printValidators(
+      validators,
+    )}, found: ${value} (${typeof value})`,
+  };
+}
+
+export function validateOneOfLiterals<T extends Literal>(
+  value: unknown,
+  values: readonly T[],
+): ValidationResult<T> {
+  for (const v of values) {
+    if (v === value) {
+      return { type: "Valid", value: value as T };
+    }
+  }
+
+  const joinedValues = values.map((v) => JSON.stringify(v, null, JSON_SPACING)).join(", ");
+
+  return { type: "Invalid", errors: `Expected to match one of ${joinedValues} but found ${value}` };
+}
+
+export type ValidatorSpec<T> = {
+  [key: string]: Validator<T> | undefined;
+};
+
+export type HasTypeTag<T extends string> = { [P in T]: string };
+
+export function hasTypeTag<T extends string>(value: unknown, tagField: T): value is HasTypeTag<T> {
+  return isInterface(value, { [tagField]: isString });
+}
+
+export function validateWithTypeTag<T>(
+  value: unknown,
+  spec: ValidatorSpec<T>,
+  tagField: string,
+): ValidationResult<T> {
+  if (hasTypeTag(value, tagField)) {
+    const tagValue = value[tagField];
+    const validator = spec[tagValue] ?? "NotFound";
+
+    if (validator === "NotFound") {
+      const validTypeTags = Object.keys(spec);
+
+      return {
+        type: "Invalid",
+        errors: `Unknown type tag. Expected one of: ${validTypeTags.join(
+          ", ",
+        )} but found '${tagValue}'`,
+      };
+    }
+
+    return validator(value);
+  } else {
+    return {
+      type: "Invalid",
+      errors: `Expecting type tag but found none in: ${JSON.stringify(value, null, JSON_SPACING)}`,
+    };
+  }
 }
 
 export function validateConstant<T>(constant: T): Validator<T> {
@@ -288,3 +347,5 @@ export function validateArray<T>(validator: Validator<T>): Validator<T[]> {
 const assertUnreachable = (x: never): never => {
   throw new Error(`Reached unreachable case with value: ${x}`);
 };
+
+const JSON_SPACING = 4;
