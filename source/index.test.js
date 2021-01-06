@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var index_1 = require("./index");
 var console_1 = require("console");
+var typesForTests_1 = require("./typesForTests");
 var personInterfaceSpecification = {
     type: "Person",
     name: index_1.isString,
@@ -118,17 +119,26 @@ test("Nested validators work as expected", function () {
         }
     }
 });
-test("`validateOneOf` works with basic types", function () {
-    var success = 1;
+test("`validateOneOf` works with untagged union", function () {
+    var successOne = { value: "Hello" };
+    var successTwo = "Eyy!";
     var failure = false;
-    var validators = [index_1.validateString, index_1.validateNumber];
-    var successResult = index_1.validateOneOf(success, validators);
-    expect(successResult.type).toEqual("Valid");
+    var validators = [typesForTests_1.validateUntaggedOnePayload, index_1.validateString];
+    var successResultOne = index_1.validateOneOf(successOne, validators);
+    expect(successResultOne.type).toEqual("Valid");
+    expect(typesForTests_1.validateUntaggedUnion(successOne)).toEqual(successResultOne);
+    expect(typesForTests_1.isUntaggedUnion(successOne)).toBe(true);
+    var successResultTwo = index_1.validateOneOf(successTwo, validators);
+    expect(successResultTwo.type).toEqual("Valid");
+    expect(typesForTests_1.validateUntaggedUnion(successTwo)).toEqual(successResultTwo);
+    expect(typesForTests_1.isUntaggedUnion(successTwo)).toBe(true);
     var failureResult = index_1.validateOneOf(failure, validators);
     expect(failureResult.type).toEqual("Invalid");
     if (failureResult.type === "Invalid") {
-        expect(failureResult.errors).toEqual("Expected to match one of `validateString`, `validateNumber`");
+        expect(failureResult.errors).toEqual("Expected to match one of `validateUntaggedOnePayload`, `validateString`, found: false (boolean)");
     }
+    expect(typesForTests_1.validateUntaggedUnion(failure)).toEqual(failureResult);
+    expect(typesForTests_1.isUntaggedUnion(failure)).toBe(false);
 });
 test("`validateConstant` works", function () {
     var success = 1;
@@ -141,5 +151,74 @@ test("`validateConstant` works", function () {
     if (failureResult.type === "Invalid") {
         expect(failureResult.errors).toEqual("Expected 1 (number), got: false (boolean)");
     }
+});
+test("`validateOneOf` works with enumeration", function () {
+    var success = typesForTests_1.BasicEnumeration.size1;
+    var failure = false;
+    var validators = [
+        typesForTests_1.BasicEnumeration.size1,
+        typesForTests_1.BasicEnumeration.size2,
+        typesForTests_1.BasicEnumeration.other,
+    ];
+    var successResult = index_1.validateOneOfLiterals(success, validators);
+    expect(successResult.type).toEqual("Valid");
+    expect(typesForTests_1.validateBasicEnumeration(success)).toEqual(successResult);
+    expect(typesForTests_1.isBasicEnumeration(success)).toBe(true);
+    var failureResult = index_1.validateOneOfLiterals(failure, validators);
+    expect(failureResult.type).toEqual("Invalid");
+    if (failureResult.type === "Invalid") {
+        expect(failureResult.errors).toEqual('Expected to match one of "SizeOne", "SizeTwo", "OtherSize" but found false');
+    }
+    expect(typesForTests_1.validateBasicEnumeration(failure)).toEqual(failureResult);
+    expect(typesForTests_1.isBasicEnumeration(failure)).toBe(false);
+});
+test("`validateWithTypeTag` works with basic types", function () {
+    var _a;
+    var successOne = typesForTests_1.One({ field: 42 });
+    var successTwo = typesForTests_1.Two({ value: "StringConstant" });
+    var failureWithUnknownTypeTag = {
+        type: "DoesNotExist",
+        data: { doesNotMatter: "Hello" },
+    };
+    var failureWithBadPayload = {
+        type: "One",
+        data: { field: "string instead of number" },
+    };
+    var validatorSpec = (_a = {},
+        _a[typesForTests_1.TaggedUnionTag.One] = typesForTests_1.validateOne,
+        _a[typesForTests_1.TaggedUnionTag.Two] = typesForTests_1.validateTwo,
+        _a);
+    var successResultOne = index_1.validateWithTypeTag(successOne, validatorSpec, "type");
+    var successResultTwo = index_1.validateWithTypeTag(successTwo, validatorSpec, "type");
+    expect(successResultOne.type).toEqual("Valid");
+    if (successResultOne.type === "Valid") {
+        expect(typesForTests_1.isOne(successResultOne.value)).toBe(true);
+        expect(typesForTests_1.isTwo(successResultOne.value)).toBe(false);
+    }
+    expect(successResultOne).toEqual(typesForTests_1.validateTaggedUnion(successOne));
+    expect(typesForTests_1.isTaggedUnion(successOne)).toBe(true);
+    expect(successResultTwo.type).toEqual("Valid");
+    if (successResultTwo.type === "Valid") {
+        expect(typesForTests_1.isOne(successResultTwo.value)).toBe(false);
+        expect(typesForTests_1.isTwo(successResultTwo.value)).toBe(true);
+    }
+    expect(successResultTwo).toEqual(typesForTests_1.validateTaggedUnion(successTwo));
+    expect(typesForTests_1.isTaggedUnion(successTwo)).toBe(true);
+    var failureResultWithUnknownTypeTag = index_1.validateWithTypeTag(failureWithUnknownTypeTag, validatorSpec, "type");
+    expect(failureResultWithUnknownTypeTag.type).toEqual("Invalid");
+    if (failureResultWithUnknownTypeTag.type === "Invalid") {
+        expect(failureResultWithUnknownTypeTag.errors).toEqual("Unknown type tag. Expected one of: One, Two but found 'DoesNotExist'");
+    }
+    expect(failureResultWithUnknownTypeTag).toEqual(typesForTests_1.validateTaggedUnion(failureWithUnknownTypeTag));
+    expect(typesForTests_1.isTaggedUnion(failureWithUnknownTypeTag)).toBe(false);
+    var failureResultWithBadPayload = index_1.validateWithTypeTag(failureWithBadPayload, validatorSpec, "type");
+    expect(failureResultWithBadPayload.type).toEqual("Invalid");
+    if (failureResultWithBadPayload.type === "Invalid") {
+        expect(failureResultWithBadPayload.errors).toEqual({
+            data: { field: "Expected number, got: string instead of number (string)" },
+        });
+    }
+    expect(failureResultWithBadPayload).toEqual(typesForTests_1.validateTaggedUnion(failureWithBadPayload));
+    expect(typesForTests_1.isTaggedUnion(failureWithBadPayload)).toBe(false);
 });
 //# sourceMappingURL=index.test.js.map
