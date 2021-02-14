@@ -150,7 +150,7 @@ function isNumber(value) {
 }
 exports.isNumber = isNumber;
 function isObject(value) {
-    return typeof value === "object";
+    return typeof value === "object" && value !== null;
 }
 exports.isObject = isObject;
 function validateBoolean(value) {
@@ -239,15 +239,17 @@ function optional(predicate) {
 exports.optional = optional;
 function validateOptional(validator) {
     return function validateOptionalOrT(value) {
-        var validationResult = validator(value);
-        if (validationResult.type === "Valid") {
-            return exports.Valid(value);
-        }
-        else if (value === null || value === undefined) {
+        if (value === null || value === undefined) {
             return exports.Valid(value);
         }
         else {
-            return exports.Invalid(validationResult.errors + " or null/undefined");
+            var validationResult = validator(value);
+            if (validationResult.type === "Valid") {
+                return exports.Valid(value);
+            }
+            else {
+                return exports.Invalid(validationResult.errors + " or null/undefined");
+            }
         }
     };
 }

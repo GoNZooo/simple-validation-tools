@@ -186,7 +186,7 @@ export function isNumber(value: unknown): value is number {
 }
 
 export function isObject(value: unknown): value is object {
-  return typeof value === "object";
+  return typeof value === "object" && value !== null;
 }
 
 export function validateBoolean(value: unknown): ValidationResult<boolean> {
@@ -300,14 +300,16 @@ export function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null
 
 export function validateOptional<T>(validator: Validator<T>): Validator<T | null | undefined> {
   return function validateOptionalOrT(value: unknown): ValidationResult<T | null | undefined> {
-    const validationResult = validator(value);
-
-    if (validationResult.type === "Valid") {
-      return Valid(value as T);
-    } else if (value === null || value === undefined) {
+    if (value === null || value === undefined) {
       return Valid(value);
     } else {
-      return Invalid(validationResult.errors + " or null/undefined");
+      const validationResult = validator(value);
+
+      if (validationResult.type === "Valid") {
+        return Valid(value as T);
+      } else {
+        return Invalid(validationResult.errors + " or null/undefined");
+      }
     }
   };
 }
