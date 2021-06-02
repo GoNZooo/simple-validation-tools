@@ -26,6 +26,7 @@ export declare type ValidatorSpec<T> = {
 export declare type HasTypeTag<T extends string> = {
     [P in T]: string;
 };
+export declare const isInterface: <T>(value: unknown, specification: InterfaceSpecification) => value is T;
 export declare function hasTypeTag<T extends string>(value: unknown, tagField: T): value is HasTypeTag<T>;
 export declare function validateWithTypeTag<T>(value: unknown, spec: ValidatorSpec<T>, tagField: string): ValidationResult<T>;
 export declare function validateConstant<T>(constant: T): Validator<T>;
@@ -50,7 +51,6 @@ export declare function isStringMapOf<T>(value: unknown, predicate: TypePredicat
 export declare type TypeChecker<T> = Literal | TypePredicate<Literal | T>;
 export declare type Literal = number | string | boolean | bigint | undefined | null;
 export declare type InterfaceSpecification = StringMap<TypeChecker<unknown>>;
-export declare const isInterface: <T>(value: unknown, specification: InterfaceSpecification) => value is T;
 export declare function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null | undefined>;
 export declare function validateOptional<T>(validator: Validator<T>): Validator<T | null | undefined>;
 export declare function arrayOf<T>(predicate: TypePredicate<T>): TypePredicate<T[]>;

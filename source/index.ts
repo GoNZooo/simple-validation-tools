@@ -55,6 +55,7 @@ export const validate = <T>(
 ): ValidationResult<T> => {
   const errors: ErrorMap = {};
   let hasErrors = false;
+  const newValue: StringMap<unknown> = {};
 
   if (isStringMapOf(value, isUnknown)) {
     for (const key in specification) {
@@ -65,6 +66,7 @@ export const validate = <T>(
 
         switch (validateResult.type) {
           case "Valid": {
+            newValue[key] = validateResult.value;
             break;
           }
 
@@ -84,7 +86,7 @@ export const validate = <T>(
     return hasErrors
       ? { type: "Invalid", errors }
       : // We know here that we should have a valid `T` as it has passed all checkers
-        { type: "Valid", value: (value as unknown) as T };
+        { type: "Valid", value: (newValue as unknown) as T };
   } else {
     return { type: "Invalid", errors: "is not a StringMap/object" };
   }

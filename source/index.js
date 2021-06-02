@@ -11,7 +11,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isInterface = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.validateOneOfLiterals = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 var Valid = function (value) {
     return { type: "Valid", value: value };
 };
@@ -20,6 +20,7 @@ var Invalid = function (errors) {
     return { type: "Invalid", errors: errors };
 };
 exports.Invalid = Invalid;
+var JSON_SPACING = 4;
 function runValidator(value, validator) {
     if (isLiteral(validator)) {
         return value === validator
@@ -41,6 +42,7 @@ exports.isValidator = isValidator;
 var validate = function (value, specification) {
     var errors = {};
     var hasErrors = false;
+    var newValue = {};
     if (isStringMapOf(value, isUnknown)) {
         for (var key in specification) {
             if (Object.prototype.hasOwnProperty.call(specification, key)) {
@@ -49,6 +51,7 @@ var validate = function (value, specification) {
                 var validateResult = runValidator(valueToCheck, validator);
                 switch (validateResult.type) {
                     case "Valid": {
+                        newValue[key] = validateResult.value;
                         break;
                     }
                     case "Invalid": {
@@ -64,7 +67,7 @@ var validate = function (value, specification) {
         return hasErrors
             ? { type: "Invalid", errors: errors }
             : // We know here that we should have a valid `T` as it has passed all checkers
-                { type: "Valid", value: value };
+                { type: "Valid", value: newValue };
     }
     else {
         return { type: "Invalid", errors: "is not a StringMap/object" };
@@ -96,6 +99,24 @@ function validateOneOfLiterals(value, values) {
     return { type: "Invalid", errors: "Expected to match one of " + joinedValues + " but found " + value };
 }
 exports.validateOneOfLiterals = validateOneOfLiterals;
+var isInterface = function (value, specification) {
+    if (isStringMapOf(value, isUnknown)) {
+        for (var key in specification) {
+            if (Object.prototype.hasOwnProperty.call(specification, key)) {
+                var checker = specification[key];
+                var valueToCheck = value[key];
+                if (!check(valueToCheck, checker)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+exports.isInterface = isInterface;
 function hasTypeTag(value, tagField) {
     var _a;
     return exports.isInterface(value, (_a = {}, _a[tagField] = isString, _a));
@@ -213,24 +234,6 @@ function check(value, checker) {
         throw Error("Invalid type for checker: " + typeof checker);
     }
 }
-var isInterface = function (value, specification) {
-    if (isStringMapOf(value, isUnknown)) {
-        for (var key in specification) {
-            if (Object.prototype.hasOwnProperty.call(specification, key)) {
-                var checker = specification[key];
-                var valueToCheck = value[key];
-                if (!check(valueToCheck, checker)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    else {
-        return false;
-    }
-};
-exports.isInterface = isInterface;
 function optional(predicate) {
     return function isOptionalOrT(value) {
         return value === null || value === undefined || predicate(value);
@@ -288,8 +291,7 @@ function validateArray(validator) {
     };
 }
 exports.validateArray = validateArray;
-var assertUnreachable = function (x) {
+function assertUnreachable(x) {
     throw new Error("Reached unreachable case with value: " + x);
-};
-var JSON_SPACING = 4;
+}
 //# sourceMappingURL=index.js.map
