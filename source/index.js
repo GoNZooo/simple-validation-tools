@@ -10,6 +10,13 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 var Valid = function (value) {
@@ -267,22 +274,23 @@ function validateArray(validator) {
     return function validateArrayOfT(value) {
         if (Array.isArray(value)) {
             var hasErrors_1 = false;
-            var errorMap = value.reduce(function (errors, v, index) {
+            var _a = value.reduce(function (accumulator, v, index) {
                 var _a;
+                var values = accumulator.values, errors = accumulator.errors;
                 var valueValidatorResult = validator(v);
                 if (valueValidatorResult.type === "Valid") {
-                    return errors;
+                    return __assign(__assign({}, accumulator), { values: __spreadArrays(values, [valueValidatorResult.value]) });
                 }
                 else {
                     hasErrors_1 = true;
-                    return __assign(__assign({}, errors), (_a = {}, _a[index] = valueValidatorResult.errors, _a));
+                    return { values: [], errors: __assign(__assign({}, errors), (_a = {}, _a[index] = valueValidatorResult.errors, _a)) };
                 }
-            }, {});
+            }, { values: [], errors: {} }), checkedValues = _a.values, errorMap = _a.errors;
             if (hasErrors_1) {
                 return exports.Invalid(errorMap);
             }
             else {
-                return exports.Valid(value);
+                return exports.Valid(checkedValues);
             }
         }
         else {

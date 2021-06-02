@@ -328,21 +328,28 @@ export function validateArray<T>(validator: Validator<T>): Validator<T[]> {
   return function validateArrayOfT(value: unknown): ValidationResult<T[]> {
     if (Array.isArray(value)) {
       let hasErrors = false;
-      const errorMap = value.reduce<ErrorMap>((errors, v, index) => {
-        const valueValidatorResult = validator(v);
-        if (valueValidatorResult.type === "Valid") {
-          return errors;
-        } else {
-          hasErrors = true;
+      const { values: checkedValues, errors: errorMap } = value.reduce<{
+        values: T[];
+        errors: ErrorMap;
+      }>(
+        (accumulator: { values: T[]; errors: ErrorMap }, v, index) => {
+          const { values, errors } = accumulator;
+          const valueValidatorResult = validator(v);
+          if (valueValidatorResult.type === "Valid") {
+            return { ...accumulator, values: [...values, valueValidatorResult.value] };
+          } else {
+            hasErrors = true;
 
-          return { ...errors, [index]: valueValidatorResult.errors };
-        }
-      }, {});
+            return { values: [], errors: { ...errors, [index]: valueValidatorResult.errors } };
+          }
+        },
+        { values: [], errors: {} },
+      );
 
       if (hasErrors) {
         return Invalid(errorMap);
       } else {
-        return Valid(value);
+        return Valid(checkedValues);
       }
     } else {
       return Invalid("is not an array");
