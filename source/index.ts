@@ -28,6 +28,8 @@ export type ErrorMap = {
   [key: string]: string | ErrorMap;
 };
 
+const JSON_SPACING = 4;
+
 export function runValidator<T>(
   value: unknown,
   validator: Validator<T> | Literal,
@@ -124,6 +126,28 @@ export type ValidatorSpec<T> = {
 };
 
 export type HasTypeTag<T extends string> = { [P in T]: string };
+
+export const isInterface = <T>(
+  value: unknown,
+  specification: InterfaceSpecification,
+): value is T => {
+  if (isStringMapOf(value, isUnknown)) {
+    for (const key in specification) {
+      if (Object.prototype.hasOwnProperty.call(specification, key)) {
+        const checker = specification[key];
+        const valueToCheck = value[key];
+
+        if (!check(valueToCheck, checker)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  } else {
+    return false;
+  }
+};
 
 export function hasTypeTag<T extends string>(value: unknown, tagField: T): value is HasTypeTag<T> {
   return isInterface(value, { [tagField]: isString });
@@ -270,28 +294,6 @@ export type Literal = number | string | boolean | bigint | undefined | null;
 
 export type InterfaceSpecification = StringMap<TypeChecker<unknown>>;
 
-export const isInterface = <T>(
-  value: unknown,
-  specification: InterfaceSpecification,
-): value is T => {
-  if (isStringMapOf(value, isUnknown)) {
-    for (const key in specification) {
-      if (Object.prototype.hasOwnProperty.call(specification, key)) {
-        const checker = specification[key];
-        const valueToCheck = value[key];
-
-        if (!check(valueToCheck, checker)) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  } else {
-    return false;
-  }
-};
-
 export function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null | undefined> {
   return function isOptionalOrT(value: unknown): value is T | null | undefined {
     return value === null || value === undefined || predicate(value);
@@ -346,8 +348,6 @@ export function validateArray<T>(validator: Validator<T>): Validator<T[]> {
   };
 }
 
-const assertUnreachable = (x: never): never => {
+function assertUnreachable(x: never): never {
   throw new Error(`Reached unreachable case with value: ${x}`);
-};
-
-const JSON_SPACING = 4;
+}
