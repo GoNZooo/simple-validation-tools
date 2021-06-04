@@ -103,7 +103,11 @@ export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): Va
   }
 
   return Invalid(
-    `Expected to match one of ${printValidators(validators)}, found: ${value} (${typeof value})`,
+    `Expected to match one of ${printValidators(validators)}, found: ${JSON.stringify(
+      value,
+      null,
+      2,
+    )} (${typeof value})`,
   );
 }
 
