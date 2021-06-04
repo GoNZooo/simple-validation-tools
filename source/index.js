@@ -89,7 +89,7 @@ function validateOneOf(value, validators) {
             return exports.Valid(value);
         }
     }
-    return exports.Invalid("Expected to match one of " + printValidators(validators) + ", found: " + value + " (" + typeof value + ")");
+    return exports.Invalid("Expected to match one of " + printValidators(validators) + ", found: " + JSON.stringify(value, null, 2) + " (" + typeof value + ")");
 }
 exports.validateOneOf = validateOneOf;
 function validateOneOfLiterals(value, values) {
