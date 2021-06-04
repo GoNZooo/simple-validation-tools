@@ -86,7 +86,7 @@ function validateOneOf(value, validators) {
         var validator = validators_1[_i];
         var result = validator(value);
         if (result.type === "Valid") {
-            return exports.Valid(value);
+            return exports.Valid(result.value);
         }
     }
     return exports.Invalid("Expected to match one of " + printValidators(validators) + ", found: " + JSON.stringify(value, null, 2) + " (" + typeof value + ")");

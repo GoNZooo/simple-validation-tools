@@ -98,7 +98,7 @@ export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): Va
   for (const validator of validators) {
     const result = validator(value);
     if (result.type === "Valid") {
-      return Valid(value as T);
+      return Valid(result.value);
     }
   }
 
