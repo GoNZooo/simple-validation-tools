@@ -20,11 +20,11 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 var Valid = function (value) {
-    return { type: "Valid", value: value };
+    return { type: "Valid", value: value, valid: true };
 };
 exports.Valid = Valid;
 var Invalid = function (errors) {
-    return { type: "Invalid", errors: errors };
+    return { type: "Invalid", errors: errors, valid: false };
 };
 exports.Invalid = Invalid;
 var JSON_SPACING = 4;
@@ -72,12 +72,12 @@ var validate = function (value, specification) {
             }
         }
         return hasErrors
-            ? { type: "Invalid", errors: errors }
+            ? exports.Invalid(errors)
             : // We know here that we should have a valid `T` as it has passed all checkers
-                { type: "Valid", value: newValue };
+                exports.Valid(newValue);
     }
     else {
-        return { type: "Invalid", errors: "is not a StringMap/object" };
+        return exports.Invalid("is not a StringMap/object");
     }
 };
 exports.validate = validate;
@@ -86,24 +86,21 @@ function validateOneOf(value, validators) {
         var validator = validators_1[_i];
         var result = validator(value);
         if (result.type === "Valid") {
-            return { type: "Valid", value: value };
+            return exports.Valid(value);
         }
     }
-    return {
-        type: "Invalid",
-        errors: "Expected to match one of " + printValidators(validators) + ", found: " + value + " (" + typeof value + ")",
-    };
+    return exports.Invalid("Expected to match one of " + printValidators(validators) + ", found: " + value + " (" + typeof value + ")");
 }
 exports.validateOneOf = validateOneOf;
 function validateOneOfLiterals(value, values) {
     for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
         var v = values_1[_i];
         if (v === value) {
-            return { type: "Valid", value: value };
+            return exports.Valid(value);
         }
     }
     var joinedValues = values.map(function (v) { return JSON.stringify(v, null, JSON_SPACING); }).join(", ");
-    return { type: "Invalid", errors: "Expected to match one of " + joinedValues + " but found " + value };
+    return exports.Invalid("Expected to match one of " + joinedValues + " but found " + value);
 }
 exports.validateOneOfLiterals = validateOneOfLiterals;
 var isInterface = function (value, specification) {
@@ -136,29 +133,20 @@ function validateWithTypeTag(value, spec, tagField) {
         var validator = (_a = spec[tagValue]) !== null && _a !== void 0 ? _a : "NotFound";
         if (validator === "NotFound") {
             var validTypeTags = Object.keys(spec);
-            return {
-                type: "Invalid",
-                errors: "Unknown type tag. Expected one of: " + validTypeTags.join(", ") + " but found '" + tagValue + "'",
-            };
+            return exports.Invalid("Unknown type tag. Expected one of: " + validTypeTags.join(", ") + " but found '" + tagValue + "'");
         }
         return validator(value);
     }
     else {
-        return {
-            type: "Invalid",
-            errors: "Expecting type tag but found none in: " + JSON.stringify(value, null, JSON_SPACING),
-        };
+        return exports.Invalid("Expecting type tag but found none in: " + JSON.stringify(value, null, JSON_SPACING));
     }
 }
 exports.validateWithTypeTag = validateWithTypeTag;
 function validateConstant(constant) {
     return function validateConstantValue(value) {
         return value === constant
-            ? { type: "Valid", value: value }
-            : {
-                type: "Invalid",
-                errors: "Expected " + constant + " (" + typeof constant + "), got: " + value + " (" + typeof value + ")",
-            };
+            ? exports.Valid(value)
+            : exports.Invalid("Expected " + constant + " (" + typeof constant + "), got: " + value + " (" + typeof value + ")");
     };
 }
 exports.validateConstant = validateConstant;

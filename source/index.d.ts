@@ -4,11 +4,13 @@ export declare type Validator<T> = (value: unknown) => ValidationResult<T>;
 export declare type TypePredicate<T> = (value: unknown) => value is T;
 export interface Valid<T> {
     type: "Valid";
+    valid: true;
     value: T;
 }
 export declare const Valid: <T>(value: T) => Valid<T>;
 export interface Invalid<T> {
     type: "Invalid";
+    valid: false;
     errors: ErrorMap | string;
 }
 export declare const Invalid: <T>(errors: ErrorMap | string) => Invalid<T>;

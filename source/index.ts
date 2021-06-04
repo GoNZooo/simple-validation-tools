@@ -8,20 +8,22 @@ export type TypePredicate<T> = (value: unknown) => value is T;
 
 export interface Valid<T> {
   type: "Valid";
+  valid: true;
   value: T;
 }
 
 export const Valid = <T>(value: T): Valid<T> => {
-  return { type: "Valid", value };
+  return { type: "Valid", value, valid: true };
 };
 
 export interface Invalid<T> {
   type: "Invalid";
+  valid: false;
   errors: ErrorMap | string;
 }
 
 export const Invalid = <T>(errors: ErrorMap | string): Invalid<T> => {
-  return { type: "Invalid", errors };
+  return { type: "Invalid", errors, valid: false };
 };
 
 export type ErrorMap = {
@@ -84,11 +86,11 @@ export const validate = <T>(
     }
 
     return hasErrors
-      ? { type: "Invalid", errors }
+      ? Invalid(errors)
       : // We know here that we should have a valid `T` as it has passed all checkers
-        { type: "Valid", value: (newValue as unknown) as T };
+        Valid((newValue as unknown) as T);
   } else {
-    return { type: "Invalid", errors: "is not a StringMap/object" };
+    return Invalid("is not a StringMap/object");
   }
 };
 
@@ -96,16 +98,13 @@ export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): Va
   for (const validator of validators) {
     const result = validator(value);
     if (result.type === "Valid") {
-      return { type: "Valid", value: value as T };
+      return Valid(value as T);
     }
   }
 
-  return {
-    type: "Invalid",
-    errors: `Expected to match one of ${printValidators(
-      validators,
-    )}, found: ${value} (${typeof value})`,
-  };
+  return Invalid(
+    `Expected to match one of ${printValidators(validators)}, found: ${value} (${typeof value})`,
+  );
 }
 
 export function validateOneOfLiterals<T extends Literal>(
@@ -114,13 +113,13 @@ export function validateOneOfLiterals<T extends Literal>(
 ): ValidationResult<T> {
   for (const v of values) {
     if (v === value) {
-      return { type: "Valid", value: value as T };
+      return Valid(value as T);
     }
   }
 
   const joinedValues = values.map((v) => JSON.stringify(v, null, JSON_SPACING)).join(", ");
 
-  return { type: "Invalid", errors: `Expected to match one of ${joinedValues} but found ${value}` };
+  return Invalid(`Expected to match one of ${joinedValues} but found ${value}`);
 }
 
 export type ValidatorSpec<T> = {
@@ -167,31 +166,24 @@ export function validateWithTypeTag<T>(
     if (validator === "NotFound") {
       const validTypeTags = Object.keys(spec);
 
-      return {
-        type: "Invalid",
-        errors: `Unknown type tag. Expected one of: ${validTypeTags.join(
-          ", ",
-        )} but found '${tagValue}'`,
-      };
+      return Invalid(
+        `Unknown type tag. Expected one of: ${validTypeTags.join(", ")} but found '${tagValue}'`,
+      );
     }
 
     return validator(value);
   } else {
-    return {
-      type: "Invalid",
-      errors: `Expecting type tag but found none in: ${JSON.stringify(value, null, JSON_SPACING)}`,
-    };
+    return Invalid(
+      `Expecting type tag but found none in: ${JSON.stringify(value, null, JSON_SPACING)}`,
+    );
   }
 }
 
 export function validateConstant<T>(constant: T): Validator<T> {
   return function validateConstantValue(value: unknown): ValidationResult<T> {
     return value === constant
-      ? { type: "Valid", value: value as T }
-      : {
-          type: "Invalid",
-          errors: `Expected ${constant} (${typeof constant}), got: ${value} (${typeof value})`,
-        };
+      ? Valid(value as T)
+      : Invalid(`Expected ${constant} (${typeof constant}), got: ${value} (${typeof value})`);
   };
 }
 
