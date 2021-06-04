@@ -1,6 +1,6 @@
 {
   "name": "simple-validation-tools",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "dependencies": {},
   "license": "MIT",
   "main": "source/index.js",
