@@ -6,6 +6,8 @@ export type Validator<T> = (value: unknown) => ValidationResult<T>;
 
 export type TypePredicate<T> = (value: unknown) => value is T;
 
+export type ToJSON<T> = (value: T) => unknown;
+
 export interface Valid<T> {
   type: "Valid";
   valid: true;
@@ -379,6 +381,22 @@ export function validateArray<T>(validator: Validator<T>): Validator<T[]> {
       }
     } else {
       return Invalid("is not an array");
+    }
+  };
+}
+
+export function arrayToJson<T>(tToJson: ToJSON<T>): ToJSON<T[]> {
+  return function arrayTToJson(value: T[]): unknown {
+    return value.map(tToJson);
+  };
+}
+
+export function optionalToJson<T>(tToJson: ToJSON<T>): ToJSON<T | null | undefined> {
+  return function optionalTToJson(value: T | null | undefined): unknown {
+    if (value === null || value === undefined) {
+      return null;
+    } else {
+      return tToJson(value);
     }
   };
 }
