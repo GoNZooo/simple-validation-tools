@@ -94,6 +94,16 @@ export const validate = <T>(
   }
 };
 
+export function validateClass<T>(
+  value: unknown,
+  specification: ValidationSpecification,
+  constructor: Constructor<T>,
+): ValidationResult<T> {
+  const result = validate<T>(value, specification);
+
+  return result.valid ? Valid(new constructor(...Object.values(result.value))) : result;
+}
+
 export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T> {
   for (const validator of validators) {
     const result = validator(value);
