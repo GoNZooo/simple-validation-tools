@@ -21,6 +21,7 @@ export declare function runValidator<T>(value: unknown, validator: Validator<T> 
 export declare function isValidator(value: unknown): value is Validator<unknown>;
 export declare const validate: <T>(value: unknown, specification: ValidationSpecification) => ValidationResult<T>;
 export declare function validateClass<T>(value: unknown, specification: ValidationSpecification, constructor: Constructor<T>): ValidationResult<T>;
+export declare function validateClassWithTypeTag<T, TagField extends string>(value: unknown, specification: ValidationSpecification, tagField: TagField, typeTag: string, constructor: Constructor<T>): ValidationResult<T>;
 export declare function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T>;
 export declare function validateOneOfLiterals<T extends Literal>(value: unknown, values: readonly T[]): ValidationResult<T>;
 export declare type ValidatorSpec<T> = {

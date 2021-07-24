@@ -18,7 +18,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
     return r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validateClass = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validateClassWithTypeTag = exports.validateClass = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 var Valid = function (value) {
     return { type: "Valid", value: value, valid: true };
 };
@@ -86,6 +86,17 @@ function validateClass(value, specification, constructor) {
     return result.valid ? exports.Valid(new (constructor.bind.apply(constructor, __spreadArrays([void 0], Object.values(result.value))))()) : result;
 }
 exports.validateClass = validateClass;
+function validateClassWithTypeTag(value, specification, tagField, typeTag, constructor) {
+    if (!hasTypeTag(value, tagField)) {
+        return exports.Invalid("Does not have tag field '" + tagField + "'");
+    }
+    if (value[tagField] !== typeTag) {
+        return exports.Invalid("Expected type tag '" + typeTag + "', got: '" + value[tagField] + "'");
+    }
+    var result = exports.validate(value, specification);
+    return result.valid ? exports.Valid(new (constructor.bind.apply(constructor, __spreadArrays([void 0], Object.values(result.value))))()) : result;
+}
+exports.validateClassWithTypeTag = validateClassWithTypeTag;
 function validateOneOf(value, validators) {
     for (var _i = 0, validators_1 = validators; _i < validators_1.length; _i++) {
         var validator = validators_1[_i];

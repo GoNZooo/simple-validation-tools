@@ -104,6 +104,26 @@ export function validateClass<T>(
   return result.valid ? Valid(new constructor(...Object.values(result.value))) : result;
 }
 
+export function validateClassWithTypeTag<T, TagField extends string>(
+  value: unknown,
+  specification: ValidationSpecification,
+  tagField: TagField,
+  typeTag: string,
+  constructor: Constructor<T>,
+): ValidationResult<T> {
+  if (!hasTypeTag<TagField>(value, tagField)) {
+    return Invalid(`Does not have tag field '${tagField}'`);
+  }
+
+  if (value[tagField] !== typeTag) {
+    return Invalid(`Expected type tag '${typeTag}', got: '${value[tagField]}'`);
+  }
+
+  const result = validate<T>(value, specification);
+
+  return result.valid ? Valid(new constructor(...Object.values(result.value))) : result;
+}
+
 export function validateOneOf<T>(value: unknown, validators: Validator<T>[]): ValidationResult<T> {
   for (const validator of validators) {
     const result = validator(value);
