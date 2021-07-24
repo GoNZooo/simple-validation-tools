@@ -401,6 +401,10 @@ export function optionalToJson<T>(tToJson: ToJSON<T>): ToJSON<T | null | undefin
   };
 }
 
+export function basicToJson(value: string | number | bigint | boolean): unknown {
+  return value;
+}
+
 function assertUnreachable(x: never): never {
   throw new Error(`Reached unreachable case with value: ${x}`);
 }
