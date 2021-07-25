@@ -239,6 +239,10 @@ export function isNumber(value: unknown): value is number {
   return typeof value === "number";
 }
 
+export function isBigInt(value: unknown): value is bigint {
+  return typeof value === "bigint";
+}
+
 export function isObject(value: unknown): value is object {
   return typeof value === "object" && value !== null;
 }
@@ -255,6 +259,12 @@ export function validateNumber(value: unknown): ValidationResult<number> {
   return typeof value === "number"
     ? Valid(value)
     : Invalid(`Expected number, got: ${value} (${typeof value})`);
+}
+
+export function validateBigInt(value: unknown): ValidationResult<bigint> {
+  return typeof value === "bigint"
+    ? Valid(value)
+    : Invalid(`Expected bigint, got: ${value} (${typeof value})`);
 }
 
 export interface Constructor<T> {
@@ -408,3 +418,9 @@ export function basicToJson(value: string | number | bigint | boolean): unknown 
 function assertUnreachable(x: never): never {
   throw new Error(`Reached unreachable case with value: ${x}`);
 }
+
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+  // tslint:disable-next-line: no-invalid-this
+  return this.toString();
+};

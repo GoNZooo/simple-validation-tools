@@ -18,7 +18,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
     return r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validateClassWithTypeTag = exports.validateClass = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
+exports.basicToJson = exports.optionalToJson = exports.arrayToJson = exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateBigInt = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isBigInt = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validateClassWithTypeTag = exports.validateClass = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
 var Valid = function (value) {
     return { type: "Valid", value: value, valid: true };
 };
@@ -181,6 +181,10 @@ function isNumber(value) {
     return typeof value === "number";
 }
 exports.isNumber = isNumber;
+function isBigInt(value) {
+    return typeof value === "bigint";
+}
+exports.isBigInt = isBigInt;
 function isObject(value) {
     return typeof value === "object" && value !== null;
 }
@@ -199,6 +203,12 @@ function validateNumber(value) {
         : exports.Invalid("Expected number, got: " + value + " (" + typeof value + ")");
 }
 exports.validateNumber = validateNumber;
+function validateBigInt(value) {
+    return typeof value === "bigint"
+        ? exports.Valid(value)
+        : exports.Invalid("Expected bigint, got: " + value + " (" + typeof value + ")");
+}
+exports.validateBigInt = validateBigInt;
 function instanceOf(constructor) {
     return function (value) {
         return isInstanceOf(value, constructor);
@@ -303,7 +313,33 @@ function validateArray(validator) {
     };
 }
 exports.validateArray = validateArray;
+function arrayToJson(tToJson) {
+    return function arrayTToJson(value) {
+        return value.map(tToJson);
+    };
+}
+exports.arrayToJson = arrayToJson;
+function optionalToJson(tToJson) {
+    return function optionalTToJson(value) {
+        if (value === null || value === undefined) {
+            return null;
+        }
+        else {
+            return tToJson(value);
+        }
+    };
+}
+exports.optionalToJson = optionalToJson;
+function basicToJson(value) {
+    return value;
+}
+exports.basicToJson = basicToJson;
 function assertUnreachable(x) {
     throw new Error("Reached unreachable case with value: " + x);
 }
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+    // tslint:disable-next-line: no-invalid-this
+    return this.toString();
+};
 //# sourceMappingURL=index.js.map
