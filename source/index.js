@@ -182,6 +182,15 @@ function isNumber(value) {
 }
 exports.isNumber = isNumber;
 function isBigInt(value) {
+    if (typeof value === "string") {
+        try {
+            var bigIntValue = BigInt(value);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
+    }
     return typeof value === "bigint";
 }
 exports.isBigInt = isBigInt;
@@ -204,6 +213,15 @@ function validateNumber(value) {
 }
 exports.validateNumber = validateNumber;
 function validateBigInt(value) {
+    if (typeof value === "string") {
+        try {
+            var bigIntValue = BigInt(value);
+            return exports.Valid(bigIntValue);
+        }
+        catch (e) {
+            return exports.Invalid("Got string but could not parse it as bigint: " + value);
+        }
+    }
     return typeof value === "bigint"
         ? exports.Valid(value)
         : exports.Invalid("Expected bigint, got: " + value + " (" + typeof value + ")");

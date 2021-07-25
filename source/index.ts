@@ -240,6 +240,16 @@ export function isNumber(value: unknown): value is number {
 }
 
 export function isBigInt(value: unknown): value is bigint {
+  if (typeof value === "string") {
+    try {
+      const bigIntValue = BigInt(value);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   return typeof value === "bigint";
 }
 
@@ -262,6 +272,16 @@ export function validateNumber(value: unknown): ValidationResult<number> {
 }
 
 export function validateBigInt(value: unknown): ValidationResult<bigint> {
+  if (typeof value === "string") {
+    try {
+      const bigIntValue = BigInt(value);
+
+      return Valid(bigIntValue);
+    } catch (e) {
+      return Invalid(`Got string but could not parse it as bigint: ${value}`);
+    }
+  }
+
   return typeof value === "bigint"
     ? Valid(value)
     : Invalid(`Expected bigint, got: ${value} (${typeof value})`);
