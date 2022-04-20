@@ -1,38 +1,20 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.basicToJson = exports.optionalToJson = exports.arrayToJson = exports.validateArray = exports.arrayOf = exports.validateOptional = exports.optional = exports.isStringMapOf = exports.isUnknown = exports.isInstanceOf = exports.instanceOf = exports.validateBigInt = exports.validateNumber = exports.validateString = exports.validateBoolean = exports.isObject = exports.isBigInt = exports.isNumber = exports.isString = exports.isBoolean = exports.validateConstant = exports.validateWithTypeTag = exports.hasTypeTag = exports.isInterface = exports.validateOneOfLiterals = exports.validateOneOf = exports.validateClassWithTypeTag = exports.validateClass = exports.validate = exports.isValidator = exports.runValidator = exports.Invalid = exports.Valid = void 0;
-var Valid = function (value) {
-    return { type: "Valid", value: value, valid: true };
+const Valid = (value) => {
+    return { type: "Valid", value, valid: true };
 };
 exports.Valid = Valid;
-var Invalid = function (errors) {
-    return { type: "Invalid", errors: errors, valid: false };
+const Invalid = (errors) => {
+    return { type: "Invalid", errors, valid: false };
 };
 exports.Invalid = Invalid;
-var JSON_SPACING = 4;
+const JSON_SPACING = 4;
 function runValidator(value, validator) {
     if (isLiteral(validator)) {
         return value === validator
             ? exports.Valid(value)
-            : exports.Invalid("Does not match literal '" + validator + "' (" + typeof validator + ")");
+            : exports.Invalid(`Does not match literal '${validator}' (${typeof validator})`);
     }
     else if (isValidator(validator)) {
         return validator(value);
@@ -46,16 +28,16 @@ function isValidator(value) {
     return typeof value === "function";
 }
 exports.isValidator = isValidator;
-var validate = function (value, specification) {
-    var errors = {};
-    var hasErrors = false;
-    var newValue = {};
+const validate = (value, specification) => {
+    const errors = {};
+    let hasErrors = false;
+    const newValue = {};
     if (isStringMapOf(value, isUnknown)) {
-        for (var key in specification) {
+        for (const key in specification) {
             if (Object.prototype.hasOwnProperty.call(specification, key)) {
-                var validator = specification[key];
-                var valueToCheck = value[key];
-                var validateResult = runValidator(valueToCheck, validator);
+                const validator = specification[key];
+                const valueToCheck = value[key];
+                const validateResult = runValidator(valueToCheck, validator);
                 switch (validateResult.type) {
                     case "Valid": {
                         newValue[key] = validateResult.value;
@@ -82,49 +64,47 @@ var validate = function (value, specification) {
 };
 exports.validate = validate;
 function validateClass(value, specification, constructor) {
-    var result = exports.validate(value, specification);
-    return result.valid ? exports.Valid(new (constructor.bind.apply(constructor, __spreadArrays([void 0], Object.values(result.value))))()) : result;
+    const result = exports.validate(value, specification);
+    return result.valid ? exports.Valid(new constructor(...Object.values(result.value))) : result;
 }
 exports.validateClass = validateClass;
 function validateClassWithTypeTag(value, specification, tagField, typeTag, constructor) {
     if (!hasTypeTag(value, tagField)) {
-        return exports.Invalid("Does not have tag field '" + tagField + "'");
+        return exports.Invalid(`Does not have tag field '${tagField}'`);
     }
     if (value[tagField] !== typeTag) {
-        return exports.Invalid("Expected type tag '" + typeTag + "', got: '" + value[tagField] + "'");
+        return exports.Invalid(`Expected type tag '${typeTag}', got: '${value[tagField]}'`);
     }
-    var result = exports.validate(value, specification);
-    return result.valid ? exports.Valid(new (constructor.bind.apply(constructor, __spreadArrays([void 0], Object.values(result.value))))()) : result;
+    const result = exports.validate(value, specification);
+    return result.valid ? exports.Valid(new constructor(...Object.values(result.value))) : result;
 }
 exports.validateClassWithTypeTag = validateClassWithTypeTag;
 function validateOneOf(value, validators) {
-    for (var _i = 0, validators_1 = validators; _i < validators_1.length; _i++) {
-        var validator = validators_1[_i];
-        var result = validator(value);
+    for (const validator of validators) {
+        const result = validator(value);
         if (result.type === "Valid") {
             return exports.Valid(result.value);
         }
     }
-    return exports.Invalid("Expected to match one of " + printValidators(validators) + ", found: " + JSON.stringify(value, null, 2) + " (" + typeof value + ")");
+    return exports.Invalid(`Expected to match one of ${printValidators(validators)}, found: ${JSON.stringify(value, null, 2)} (${typeof value})`);
 }
 exports.validateOneOf = validateOneOf;
 function validateOneOfLiterals(value, values) {
-    for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
-        var v = values_1[_i];
+    for (const v of values) {
         if (v === value) {
             return exports.Valid(value);
         }
     }
-    var joinedValues = values.map(function (v) { return JSON.stringify(v, null, JSON_SPACING); }).join(", ");
-    return exports.Invalid("Expected to match one of " + joinedValues + " but found " + value);
+    const joinedValues = values.map((v) => JSON.stringify(v, null, JSON_SPACING)).join(", ");
+    return exports.Invalid(`Expected to match one of ${joinedValues} but found ${value}`);
 }
 exports.validateOneOfLiterals = validateOneOfLiterals;
-var isInterface = function (value, specification) {
+const isInterface = (value, specification) => {
     if (isStringMapOf(value, isUnknown)) {
-        for (var key in specification) {
+        for (const key in specification) {
             if (Object.prototype.hasOwnProperty.call(specification, key)) {
-                var checker = specification[key];
-                var valueToCheck = value[key];
+                const checker = specification[key];
+                const valueToCheck = value[key];
                 if (!check(valueToCheck, checker)) {
                     return false;
                 }
@@ -138,23 +118,21 @@ var isInterface = function (value, specification) {
 };
 exports.isInterface = isInterface;
 function hasTypeTag(value, tagField) {
-    var _a;
-    return exports.isInterface(value, (_a = {}, _a[tagField] = isString, _a));
+    return exports.isInterface(value, { [tagField]: isString });
 }
 exports.hasTypeTag = hasTypeTag;
 function validateWithTypeTag(value, spec, tagField) {
-    var _a;
     if (hasTypeTag(value, tagField)) {
-        var tagValue = value[tagField];
-        var validator = (_a = spec[tagValue]) !== null && _a !== void 0 ? _a : "NotFound";
+        const tagValue = value[tagField];
+        const validator = spec[tagValue] ?? "NotFound";
         if (validator === "NotFound") {
-            var validTypeTags = Object.keys(spec);
-            return exports.Invalid("Unknown type tag. Expected one of: " + validTypeTags.join(", ") + " but found '" + tagValue + "'");
+            const validTypeTags = Object.keys(spec);
+            return exports.Invalid(`Unknown type tag. Expected one of: ${validTypeTags.join(", ")} but found '${tagValue}'`);
         }
         return validator(value);
     }
     else {
-        return exports.Invalid("Expecting type tag but found none in: " + JSON.stringify(value, null, JSON_SPACING));
+        return exports.Invalid(`Expecting type tag but found none in: ${JSON.stringify(value, null, JSON_SPACING)}`);
     }
 }
 exports.validateWithTypeTag = validateWithTypeTag;
@@ -162,12 +140,12 @@ function validateConstant(constant) {
     return function validateConstantValue(value) {
         return value === constant
             ? exports.Valid(value)
-            : exports.Invalid("Expected " + constant + " (" + typeof constant + "), got: " + value + " (" + typeof value + ")");
+            : exports.Invalid(`Expected ${constant} (${typeof constant}), got: ${value} (${typeof value})`);
     };
 }
 exports.validateConstant = validateConstant;
 function printValidators(validators) {
-    return validators.map(function (v) { return "`" + v.name + "`"; }).join(", ");
+    return validators.map((v) => "`" + v.name + "`").join(", ");
 }
 function isBoolean(value) {
     return typeof value === "boolean";
@@ -184,7 +162,7 @@ exports.isNumber = isNumber;
 function isBigInt(value) {
     if (typeof value === "string") {
         try {
-            var bigIntValue = BigInt(value);
+            const bigIntValue = BigInt(value);
             return true;
         }
         catch (e) {
@@ -209,26 +187,26 @@ exports.validateString = validateString;
 function validateNumber(value) {
     return typeof value === "number"
         ? exports.Valid(value)
-        : exports.Invalid("Expected number, got: " + value + " (" + typeof value + ")");
+        : exports.Invalid(`Expected number, got: ${value} (${typeof value})`);
 }
 exports.validateNumber = validateNumber;
 function validateBigInt(value) {
     if (typeof value === "string") {
         try {
-            var bigIntValue = BigInt(value);
+            const bigIntValue = BigInt(value);
             return exports.Valid(bigIntValue);
         }
         catch (e) {
-            return exports.Invalid("Got string but could not parse it as bigint: " + value);
+            return exports.Invalid(`Got string but could not parse it as bigint: ${value}`);
         }
     }
     return typeof value === "bigint"
         ? exports.Valid(value)
-        : exports.Invalid("Expected bigint, got: " + value + " (" + typeof value + ")");
+        : exports.Invalid(`Expected bigint, got: ${value} (${typeof value})`);
 }
 exports.validateBigInt = validateBigInt;
 function instanceOf(constructor) {
-    return function (value) {
+    return (value) => {
         return isInstanceOf(value, constructor);
     };
 }
@@ -243,8 +221,8 @@ function isUnknown(value) {
 exports.isUnknown = isUnknown;
 function isStringMapOf(value, predicate) {
     if (isObject(value)) {
-        var v = value;
-        return Object.keys(v).every(predicate);
+        const v = value;
+        return Object.values(v).every(predicate);
     }
     else {
         return false;
@@ -270,7 +248,7 @@ function check(value, checker) {
         return checker(value);
     }
     else {
-        throw Error("Invalid type for checker: " + typeof checker);
+        throw Error(`Invalid type for checker: ${typeof checker}`);
     }
 }
 function optional(predicate) {
@@ -285,7 +263,7 @@ function validateOptional(validator) {
             return exports.Valid(value);
         }
         else {
-            var validationResult = validator(value);
+            const validationResult = validator(value);
             if (validationResult.type === "Valid") {
                 return exports.Valid(value);
             }
@@ -305,20 +283,19 @@ exports.arrayOf = arrayOf;
 function validateArray(validator) {
     return function validateArrayOfT(value) {
         if (Array.isArray(value)) {
-            var hasErrors_1 = false;
-            var _a = value.reduce(function (accumulator, v, index) {
-                var _a;
-                var values = accumulator.values, errors = accumulator.errors;
-                var valueValidatorResult = validator(v);
+            let hasErrors = false;
+            const { values: checkedValues, errors: errorMap } = value.reduce((accumulator, v, index) => {
+                const { values, errors } = accumulator;
+                const valueValidatorResult = validator(v);
                 if (valueValidatorResult.type === "Valid") {
-                    return __assign(__assign({}, accumulator), { values: __spreadArrays(values, [valueValidatorResult.value]) });
+                    return { ...accumulator, values: [...values, valueValidatorResult.value] };
                 }
                 else {
-                    hasErrors_1 = true;
-                    return { values: [], errors: __assign(__assign({}, errors), (_a = {}, _a[index] = valueValidatorResult.errors, _a)) };
+                    hasErrors = true;
+                    return { values: [], errors: { ...errors, [index]: valueValidatorResult.errors } };
                 }
-            }, { values: [], errors: {} }), checkedValues = _a.values, errorMap = _a.errors;
-            if (hasErrors_1) {
+            }, { values: [], errors: {} });
+            if (hasErrors) {
                 return exports.Invalid(errorMap);
             }
             else {
@@ -353,7 +330,7 @@ function basicToJson(value) {
 }
 exports.basicToJson = basicToJson;
 function assertUnreachable(x) {
-    throw new Error("Reached unreachable case with value: " + x);
+    throw new Error(`Reached unreachable case with value: ${x}`);
 }
 // @ts-ignore
 BigInt.prototype.toJSON = function () {

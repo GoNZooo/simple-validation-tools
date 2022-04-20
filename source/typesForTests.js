@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateUntaggedUnion = exports.isUntaggedUnion = exports.validateUntaggedOnePayload = exports.isUntaggedOnePayload = exports.validateBasicEnumeration = exports.isBasicEnumeration = exports.BasicEnumeration = exports.validateTwo = exports.validateOne = exports.validateTaggedUnion = exports.isTwo = exports.isOne = exports.isTaggedUnion = exports.Two = exports.One = exports.TaggedUnionTag = exports.validatePayloadForTwo = exports.isPayloadForTwo = exports.validatePayloadForOne = exports.isPayloadForOne = void 0;
-var svt = require("./index");
+const svt = require("./index");
 function isPayloadForOne(value) {
     return svt.isInterface(value, { field: svt.isNumber });
 }
@@ -24,15 +24,15 @@ var TaggedUnionTag;
     TaggedUnionTag["Two"] = "Two";
 })(TaggedUnionTag = exports.TaggedUnionTag || (exports.TaggedUnionTag = {}));
 function One(data) {
-    return { type: TaggedUnionTag.One, data: data };
+    return { type: TaggedUnionTag.One, data };
 }
 exports.One = One;
 function Two(data) {
-    return { type: TaggedUnionTag.Two, data: data };
+    return { type: TaggedUnionTag.Two, data };
 }
 exports.Two = Two;
 function isTaggedUnion(value) {
-    return [isOne, isTwo].some(function (typePredicate) { return typePredicate(value); });
+    return [isOne, isTwo].some((typePredicate) => typePredicate(value));
 }
 exports.isTaggedUnion = isTaggedUnion;
 function isOne(value) {
@@ -44,11 +44,10 @@ function isTwo(value) {
 }
 exports.isTwo = isTwo;
 function validateTaggedUnion(value) {
-    var _a;
-    return svt.validateWithTypeTag(value, (_a = {},
-        _a[TaggedUnionTag.One] = validateOne,
-        _a[TaggedUnionTag.Two] = validateTwo,
-        _a), "type");
+    return svt.validateWithTypeTag(value, {
+        [TaggedUnionTag.One]: validateOne,
+        [TaggedUnionTag.Two]: validateTwo,
+    }, "type");
 }
 exports.validateTaggedUnion = validateTaggedUnion;
 function validateOne(value) {
@@ -66,7 +65,7 @@ var BasicEnumeration;
     BasicEnumeration["other"] = "OtherSize";
 })(BasicEnumeration = exports.BasicEnumeration || (exports.BasicEnumeration = {}));
 function isBasicEnumeration(value) {
-    return [BasicEnumeration.size1, BasicEnumeration.size2, BasicEnumeration.other].some(function (v) { return v === value; });
+    return [BasicEnumeration.size1, BasicEnumeration.size2, BasicEnumeration.other].some((v) => v === value);
 }
 exports.isBasicEnumeration = isBasicEnumeration;
 function validateBasicEnumeration(value) {
@@ -86,7 +85,7 @@ function validateUntaggedOnePayload(value) {
 }
 exports.validateUntaggedOnePayload = validateUntaggedOnePayload;
 function isUntaggedUnion(value) {
-    return [isUntaggedOnePayload, svt.isString].some(function (typePredicate) { return typePredicate(value); });
+    return [isUntaggedOnePayload, svt.isString].some((typePredicate) => typePredicate(value));
 }
 exports.isUntaggedUnion = isUntaggedUnion;
 function validateUntaggedUnion(value) {

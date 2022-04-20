@@ -319,7 +319,7 @@ export function isStringMapOf<T>(
   if (isObject(value)) {
     const v = value as StringMap<unknown>;
 
-    return Object.keys(v).every(predicate);
+    return Object.values(v).every(predicate);
   } else {
     return false;
   }
