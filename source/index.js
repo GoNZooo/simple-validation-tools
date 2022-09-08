@@ -162,7 +162,7 @@ exports.isNumber = isNumber;
 function isBigInt(value) {
     if (typeof value === "string") {
         try {
-            const bigIntValue = BigInt(value);
+            BigInt(value);
             return true;
         }
         catch (e) {
@@ -215,7 +215,7 @@ function isInstanceOf(value, constructor) {
     return value instanceof constructor;
 }
 exports.isInstanceOf = isInstanceOf;
-function isUnknown(value) {
+function isUnknown(_value) {
     return true;
 }
 exports.isUnknown = isUnknown;
@@ -265,7 +265,7 @@ function validateOptional(validator) {
         else {
             const validationResult = validator(value);
             if (validationResult.type === "Valid") {
-                return exports.Valid(value);
+                return exports.Valid(validationResult.value);
             }
             else {
                 return exports.Invalid(validationResult.errors + " or null/undefined");

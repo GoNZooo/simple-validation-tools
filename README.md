@@ -1,8 +1,7 @@
 # simple-validation-tools
 
-## Why?
-
-There was room in my toolbox for my own fairly simple validation tools for TypeScript.
+I created this library because there was room in my toolbox for my own fairly simple validation
+tools for TypeScript.
 
 ## What does simple mean?
 
@@ -17,11 +16,7 @@ and explicit constructors for those interfaces.
 
 ## Interfaces and type predicates can differ and we get no compiler help
 
-Yeah, I don't know how to make this enforce consistency without deriving one from the other. My
-personal plan is to perhaps use code generation from a central specification to generate these, but
-I wouldn't recommend it as a general solution. I'm sure there are compiler extensions one can use
-to define one thing and get all the necessary components out of it.
+Use code generation:
 
-## The error reporting is pretty bare/shoddy
-
-I'll try to sort it out in the future.
+[gotyno-hs](https://github.com/GoNZooo/gotyno-hs) provides a compiler for type definitions that
+uses this library to generate all of the validators, etc.
