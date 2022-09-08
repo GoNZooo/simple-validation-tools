@@ -363,7 +363,7 @@ export function optional<T>(predicate: TypePredicate<T>): TypePredicate<T | null
 export function validateOptional<T>(validator: Validator<T>): Validator<T | null | undefined> {
   return function validateOptionalOrT(value: unknown): ValidationResult<T | null | undefined> {
     if (value === null || value === undefined) {
-      return Valid(value);
+      return Valid(undefined);
     } else {
       const validationResult = validator(value);
 

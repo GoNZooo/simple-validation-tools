@@ -260,7 +260,7 @@ exports.optional = optional;
 function validateOptional(validator) {
     return function validateOptionalOrT(value) {
         if (value === null || value === undefined) {
-            return exports.Valid(value);
+            return exports.Valid(undefined);
         }
         else {
             const validationResult = validator(value);
