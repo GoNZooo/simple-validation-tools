@@ -242,7 +242,7 @@ export function isNumber(value: unknown): value is number {
 export function isBigInt(value: unknown): value is bigint {
   if (typeof value === "string") {
     try {
-      const bigIntValue = BigInt(value);
+      BigInt(value);
 
       return true;
     } catch (e) {
@@ -308,7 +308,7 @@ interface StringMap<T> {
   [key: string]: T;
 }
 
-export function isUnknown(value: unknown): value is unknown {
+export function isUnknown(_value: unknown): _value is unknown {
   return true;
 }
 
@@ -368,7 +368,7 @@ export function validateOptional<T>(validator: Validator<T>): Validator<T | null
       const validationResult = validator(value);
 
       if (validationResult.type === "Valid") {
-        return Valid(value as T);
+        return Valid(validationResult.value);
       } else {
         return Invalid(validationResult.errors + " or null/undefined");
       }

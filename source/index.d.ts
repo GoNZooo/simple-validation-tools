@@ -53,7 +53,7 @@ export declare function isInstanceOf<T>(value: unknown, constructor: Constructor
 interface StringMap<T> {
     [key: string]: T;
 }
-export declare function isUnknown(value: unknown): value is unknown;
+export declare function isUnknown(_value: unknown): _value is unknown;
 export declare function isStringMapOf<T>(value: unknown, predicate: TypePredicate<T>): value is StringMap<T>;
 export declare type TypeChecker<T> = Literal | TypePredicate<Literal | T>;
 export declare type Literal = number | string | boolean | bigint | undefined | null;
